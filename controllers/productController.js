@@ -61,3 +61,40 @@ exports.getDetail = async (req, res) => {
         res.status(404).send("Không tìm thấy sản phẩm");
     }
 };
+// Hiển thị form sửa sản phẩm
+exports.renderEditForm = async (req, res) => {
+    try {
+        const data = await Product.getById(req.params.id);
+        if (!data.Item) return res.status(404).send("Không tìm thấy sản phẩm");
+        res.render('edit', { product: data.Item });
+    } catch (err) {
+        res.status(500).send("Lỗi lấy thông tin: " + err.message);
+    }
+};
+
+// Xử lý cập nhật thông tin sản phẩm
+exports.updateProduct = async (req, res) => {
+    try {
+        const { id, name, price, unit_in_stock, old_image } = req.body;
+        let url_image = old_image; // Mặc định giữ lại ảnh cũ
+
+        // Nếu người dùng có chọn upload ảnh mới, thì lấy đường dẫn ảnh mới
+        if (req.file) {
+            url_image = `/uploads/${req.file.filename}`;
+        }
+
+        const updatedItem = {
+            id: id,
+            name: name,
+            price: Number(price),
+            unit_in_stock: Number(unit_in_stock),
+            url_image: url_image
+        };
+
+        // Trong DynamoDB, lệnh put (hàm save của bạn) sẽ tự động ghi đè nếu id đã tồn tại
+        await Product.save(updatedItem); 
+        res.redirect('/');
+    } catch (err) {
+        res.status(500).send("Lỗi cập nhật: " + err.message);
+    }
+};
