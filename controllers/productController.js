@@ -1,29 +1,18 @@
-const multer = require('multer');
-const path = require('path');
-
-const storage = multer.diskStorage({
-    destination: './public/uploads/',
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ storage: storage });
-
+// Đã chuyển cấu hình upload sang routes/productRoutes.js
 const Product = require('../models/productModel');
 const crypto = require('crypto');
 
 exports.getAllProducts = async (req, res) => {
     try {
         const data = await Product.getAll();
-        res.render('index', { products: data.Items });
+        res.render('index', { action: 'list', products: data.Items || [] });
     } catch (err) {
         res.status(500).send("Lỗi lấy dữ liệu: " + err.message);
     }
 };
 
 exports.renderAddForm = (req, res) => {
-    res.render('add');
+    res.render('index', { action: 'add' });
 };
 
 exports.addProduct = async (req, res) => {
@@ -34,7 +23,7 @@ exports.addProduct = async (req, res) => {
             name,
             price: Number(price),
             unit_in_stock: Number(unit_in_stock),
-            url_image: `/uploads/${req.file.filename}`
+            url_image: req.file ? req.file.location : ''
         };
         await Product.save(newItem);
         res.redirect('/');
@@ -56,7 +45,7 @@ exports.deleteProduct = async (req, res) => {
 exports.getDetail = async (req, res) => {
     try {
         const data = await Product.getById(req.params.id);
-        res.render('detail', { product: data.Item });
+        res.render('index', { action: 'detail', product: data.Item });
     } catch (err) {
         res.status(404).send("Không tìm thấy sản phẩm");
     }
@@ -66,7 +55,7 @@ exports.renderEditForm = async (req, res) => {
     try {
         const data = await Product.getById(req.params.id);
         if (!data.Item) return res.status(404).send("Không tìm thấy sản phẩm");
-        res.render('edit', { product: data.Item });
+        res.render('index', { action: 'edit', product: data.Item });
     } catch (err) {
         res.status(500).send("Lỗi lấy thông tin: " + err.message);
     }
@@ -78,9 +67,9 @@ exports.updateProduct = async (req, res) => {
         const { id, name, price, unit_in_stock, old_image } = req.body;
         let url_image = old_image; // Mặc định giữ lại ảnh cũ
 
-        // Nếu người dùng có chọn upload ảnh mới, thì lấy đường dẫn ảnh mới
+        // Nếu người dùng có chọn upload ảnh mới, thì lấy đường dẫn ảnh mới từ S3
         if (req.file) {
-            url_image = `/uploads/${req.file.filename}`;
+            url_image = req.file.location;
         }
 
         const updatedItem = {
