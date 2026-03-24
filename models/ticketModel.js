@@ -1,39 +1,39 @@
 const { docClient } = require('../config/dynamodb');
-const TABLE_NAME = "Products";
+const TABLE_NAME = "EventTickets";
 
-const Product = {
-    // Lấy tất cả sản phẩm
+const Ticket = {
+
     getAll: async () => {
         const params = { TableName: TABLE_NAME };
         return await docClient.scan(params).promise();
     },
 
-    // Thêm sản phẩm mới
-    save: async (product) => {
+
+    save: async (ticket) => {
         const params = {
             TableName: TABLE_NAME,
-            Item: product
+            Item: ticket
         };
         return await docClient.put(params).promise();
     },
 
-    // Lấy chi tiết 1 sản phẩm
-    getById: async (id) => {
+  
+    getById: async (ticketId) => {
         const params = {
             TableName: TABLE_NAME,
-            Key: { id }
+            Key: { ticketId: ticketId }
         };
         return await docClient.get(params).promise();
     },
 
-    // Xóa sản phẩm
-    delete: async (id) => {
+  
+    delete: async (TicketId) => {
         const params = {
             TableName: TABLE_NAME,
-            Key: { id }
+            Key: { ticketId: TicketId }
         };
         return await docClient.delete(params).promise();
     }
 };
 
-module.exports = Product;
+module.exports = Ticket;

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const productController = require('../controllers/productController');
+const ticketController = require('../controllers/ticketController');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const AWS = require('aws-sdk');
@@ -22,16 +22,14 @@ const upload = multer({
 });
 
 // Các đường dẫn
-router.get('/', productController.getAllProducts);
+router.get('/', ticketController.getAllTickets);
 router.get('/add', (req, res) => res.render('index', { action: 'add' }));
-router.post('/add', upload.single('image'), productController.addProduct);
+router.post('/add', upload.single('imageUrl'), ticketController.addTicket);
 
 // Bổ sung các đường dẫn Xem, Xóa, Sửa
-router.get('/delete/:id', productController.deleteProduct);
-router.get('/detail/:id', productController.getDetail);
-router.get('/edit/:id', productController.renderEditForm);
-router.post('/edit/:id', upload.single('image'), productController.updateProduct);
-
-module.exports = router;
+router.get('/delete/:ticketId', ticketController.deleteTicket);
+router.get('/detail/:ticketId', ticketController.getDetail);
+router.get('/edit/:ticketId', ticketController.renderEditForm);
+router.post('/edit/:ticketId', upload.single('image'), ticketController.updateTicket);
 
 module.exports = router;
